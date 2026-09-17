@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0d0722" />
+<title>Quiz — Professor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/app.css?v=3" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
+<style>
+  .cabecalho {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 14px 22px; border-bottom: 1px solid var(--borda);
+    background: rgba(0, 0, 0, 0.22); backdrop-filter: blur(8px);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .abas { display: flex; gap: 6px; }
+  .aba {
+    padding: 8px 15px; border-radius: 8px; font-weight: 700; font-size: 14px;
+    color: var(--texto-suave); transition: background 0.15s, color 0.15s;
+  }
+  .aba:hover { background: var(--superficie); color: var(--texto); }
+  .aba.ativa { background: var(--superficie-2); color: var(--texto); }
+
+  /* --- lobby --- */
+  .pin-caixa {
+    display: flex; gap: 28px; align-items: center; flex-wrap: wrap; justify-content: center;
+    background: var(--superficie); border: 1px solid var(--borda); border-radius: 18px; padding: 22px 30px;
+  }
+  .pin-numero {
+    font-size: clamp(56px, 9vw, 116px); font-weight: 800; letter-spacing: 10px; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  #qrcode { background: #fff; padding: 12px; border-radius: 12px; line-height: 0; }
+  #qrcode img, #qrcode canvas, #qrcode svg { display: block; width: clamp(140px, 16vw, 200px); height: auto; image-rendering: pixelated; }
+  .jogadores { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; max-width: 1000px; }
+  .jogador {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--superficie-2); border: 1px solid var(--borda);
+    padding: 9px 9px 9px 14px; border-radius: 999px; font-weight: 700; font-size: 18px;
+    animation: surgir 0.3s ease both;
+  }
+  .jogador button { color: #fca5a5; font-size: 17px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+  .jogador button:hover { background: rgba(220, 38, 38, 0.25); }
+
+  /* --- jogo --- */
+  .tela-jogo { flex: 1; display: flex; flex-direction: column; gap: 16px; justify-content: center; padding: 20px 26px 26px; }
+  .jogo-topo { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+  .jogo-topo .lado { flex: 1; font-weight: 700; font-size: clamp(15px, 1.3vw, 21px); color: var(--texto-suave); }
+  .jogo-topo .lado.direita { text-align: right; }
+  .contagem-numero { font-size: clamp(120px, 20vw, 260px); font-weight: 800; line-height: 1; animation: surgir 0.4s ease both; }
+  .rodape-jogo { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .zoom { display: flex; gap: 6px; }
+  .zoom button { background: var(--superficie-2); border: 1px solid var(--borda); padding: 7px 12px; border-radius: 8px; font-weight: 700; font-size: 14px; }
+  .zoom button:hover { background: rgba(255, 255, 255, 0.2); }
+
+  /* --- pódio --- */
+  .podio { display: flex; align-items: flex-end; justify-content: center; gap: 16px; margin: 10px 0 6px; }
+  .degrau { display: flex; flex-direction: column; align-items: center; gap: 10px; width: clamp(110px, 15vw, 190px); }
+  .degrau .medalha { font-size: clamp(34px, 4vw, 56px); }
+  .degrau .nome { font-weight: 800; font-size: clamp(16px, 1.6vw, 24px); text-align: center; word-break: break-word; }
+  .degrau .bloco {
+    width: 100%; border-radius: 12px 12px 0 0; display: grid; place-items: center;
+    font-size: clamp(20px, 2.2vw, 34px); font-weight: 800; color: #fff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+    animation: crescer 0.8s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  }
+  /* a cor segue a colocação, não a posição na tela (o 1º fica no meio) */
+  .bloco.ouro   { background: linear-gradient(180deg, #fcd34d, #d97706); }
+  .bloco.prata  { background: linear-gradient(180deg, #e2e8f0, #64748b); }
+  .bloco.bronze { background: linear-gradient(180deg, #e8a87c, #b45309); }
+  @keyframes crescer { from { height: 0; opacity: 0; } }
+
+  /* --- editor --- */
+  .alternativa-edit { display: flex; gap: 10px; align-items: center; margin-bottom: 9px; }
+  .alternativa-edit .forma { width: 24px; height: 24px; }
+  .alternativa-edit input[type="radio"] { width: 19px; height: 19px; accent-color: var(--sucesso); flex: none; }
+  .titulo-quiz {
+    font-size: 26px; font-weight: 800; background: transparent;
+    border: 1.5px dashed transparent; padding: 6px 10px;
+    width: auto; flex: 1; min-width: 300px;
+  }
+  .titulo-quiz:hover { border-color: var(--borda); }
+
+  /* --- relatório --- */
+  .cartoes-numero { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .cartao-numero { background: var(--superficie); border: 1px solid var(--borda); border-radius: 12px; padding: 16px; }
+  .cartao-numero strong { display: block; font-size: 32px; font-weight: 800; }
+  .cartao-numero span { font-size: 13px; color: var(--texto-suave); }
+  .marca-resposta { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; font-size: 13px; font-weight: 800; }
+  .marca-resposta.acerto { background: rgba(22, 163, 74, 0.35); color: #86efac; }
+  .marca-resposta.erro { background: rgba(220, 38, 38, 0.3); color: #fca5a5; }
+  .marca-resposta.branco { background: var(--superficie-2); color: var(--texto-suave); }
+  .rolagem { overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<!-- BARRA (telas de gestão) -->
+<header class="cabecalho" id="cabecalho" hidden>
+  <div class="marca">
+    <span class="ponto"><svg viewBox="0 0 100 100" fill="#fff"><polygon points="50,10 93,84 7,84"/></svg></span>
+    Quiz
+  </div>
+  <nav class="abas">
+    <button class="aba" id="aba-biblioteca">Meus quizzes</button>
+    <button class="aba" id="aba-relatorios">Relatórios</button>
+  </nav>
+  <div class="linha">
+    <span class="etiqueta" id="etiqueta-modo" hidden>modo aberto</span>
+    <button class="btn mini" id="btn-sair" hidden>Sair</button>
+  </div>
+</header>
+
+<!-- LOGIN -->
+<section id="tela-login" class="tela centralizada" hidden>
+  <div class="marca" style="font-size:30px">
+    <span class="ponto" style="width:40px;height:40px"><svg viewBox="0 0 100 100" fill="#fff"><polygon points="50,10 93,84 7,84"/></svg></span>
+    Quiz
+  </div>
+  <div class="cartao estreito coluna">
+    <h3>Área do professor</h3>
+    <div class="campo">
+      <label for="senha">Senha</label>
+      <input id="senha" type="password" autocomplete="current-password" placeholder="••••••••" />
+    </div>
+    <button class="btn" id="btn-login" style="width:100%">Entrar</button>
+    <div id="erro-login" class="erro"></div>
+  </div>
+</section>
+
+<!-- BIBLIOTECA -->
+<section id="tela-biblioteca" class="tela" hidden>
+  <div class="painel">
+    <div class="linha entre" style="margin-bottom:22px">
+      <div>
+        <h1>Meus quizzes</h1>
+        <p class="suave pequeno">Crie um quiz, cadastre as perguntas e abra a sala para a turma.</p>
+      </div>
+      <div class="linha">
+        <button class="btn fantasma" id="btn-importar">Importar</button>
+        <input type="file" id="arquivo" accept="application/json" hidden />
+        <button class="btn" id="btn-novo-quiz">+ Novo quiz</button>
+      </div>
+    </div>
+    <div class="coluna" id="lista-quizzes"></div>
+  </div>
+</section>
+
+<!-- EDITOR -->
+<section id="tela-editor" class="tela" hidden>
+  <div class="painel">
+    <div class="linha entre" style="margin-bottom:16px">
+      <div class="linha">
+        <button class="btn mini" id="btn-voltar-biblioteca">← Voltar</button>
+        <input class="titulo-quiz" id="titulo-quiz" maxlength="120" placeholder="Nome do quiz" />
+      </div>
+      <div class="linha">
+        <span class="etiqueta" id="estado-salvo">salvo</span>
+        <button class="btn fantasma" id="btn-exportar">Exportar</button>
+        <button class="btn" id="btn-abrir-sala">Abrir sala ▸</button>
+      </div>
+    </div>
+
+    <div class="cartao coluna" style="margin-bottom:24px">
+      <div class="linha entre">
+        <h3 id="titulo-form">Nova pergunta</h3>
+        <span class="etiqueta">pergunta <span id="numero-form">1</span></span>
+      </div>
+      <div class="campo">
+        <label for="f-enunciado">Enunciado</label>
+        <textarea id="f-enunciado" rows="2" placeholder="O que este código imprime?"></textarea>
+        <span class="suave pequeno">Use `crase` para destacar um trecho curto de código no meio do texto.</span>
+      </div>
+      <div class="campo">
+        <label for="f-codigo">Bloco de código <span style="font-weight:400">(opcional)</span></label>
+        <textarea id="f-codigo" class="mono" rows="6" spellcheck="false" placeholder="for (let i = 0; i < 3; i++) {&#10;  console.log(i);&#10;}"></textarea>
+      </div>
+      <div class="campo">
+        <label>Alternativas — marque a correta</label>
+        <div id="f-alternativas"></div>
+        <div class="linha">
+          <button class="btn mini" id="btn-add-alt">+ alternativa</button>
+          <button class="btn mini" id="btn-rem-alt">− alternativa</button>
+          <label class="checkbox"><input type="checkbox" id="f-alt-codigo" /> alternativas são código</label>
+        </div>
+      </div>
+      <div class="linha entre">
+        <div class="campo" style="max-width:190px">
+          <label for="f-tempo">Tempo para responder</label>
+          <select id="f-tempo">
+            <option value="10">10 segundos</option>
+            <option value="20" selected>20 segundos</option>
+            <option value="30">30 segundos</option>
+            <option value="60">1 minuto</option>
+            <option value="90">1min30</option>
+            <option value="120">2 minutos</option>
+          </select>
+        </div>
+        <div class="linha" style="align-self:flex-end">
+          <button class="btn fantasma" id="btn-cancelar-edicao" hidden>Cancelar</button>
+          <button class="btn" id="btn-salvar-pergunta">Adicionar pergunta</button>
+        </div>
+      </div>
+      <div id="erro-form" class="erro"></div>
+    </div>
+
+    <h3 style="margin-bottom:12px">Perguntas (<span id="qtd-perguntas">0</span>)</h3>
+    <div class="coluna" id="lista-perguntas"></div>
+  </div>
+</section>
+
+<!-- LOBBY -->
+<section id="tela-lobby" class="tela centralizada" hidden>
+  <h2 id="lobby-titulo"></h2>
+  <div class="pin-caixa">
+    <div>
+      <p class="suave">Acesse <b id="url-jogo"></b></p>
+      <p class="suave pequeno" style="margin:6px 0">e digite o PIN</p>
+      <div class="pin-numero" id="pin"></div>
+    </div>
+    <div>
+      <div id="qrcode"></div>
+      <p class="suave pequeno" style="margin-top:8px">ou aponte a câmera</p>
+    </div>
+  </div>
+  <p class="suave"><b id="qtd-jogadores">0</b> aluno(s) na sala</p>
+  <div class="jogadores" id="jogadores"></div>
+  <div class="linha centro" style="margin-top:14px">
+    <button class="btn grande" id="btn-iniciar">Começar</button>
+    <button class="btn fantasma" id="btn-cancelar-sala">Voltar ao editor</button>
+    <button class="btn fantasma" id="btn-tela-cheia">⛶ Tela cheia</button>
+  </div>
+</section>
+
+<!-- CONTAGEM -->
+<section id="tela-contagem" class="tela centralizada" hidden>
+  <p class="suave" id="contagem-info"></p>
+  <div class="enunciado longo" id="contagem-enunciado"></div>
+  <div class="contagem-numero" id="contagem-numero">3</div>
+</section>
+
+<!-- PERGUNTA -->
+<section id="tela-pergunta" class="tela tela-jogo" hidden>
+  <div class="jogo-topo">
+    <span class="lado" id="q-contador"></span>
+    <div class="relogio" id="q-relogio"></div>
+    <span class="lado direita" id="q-respostas">0 respostas</span>
+  </div>
+  <div class="enunciado" id="q-enunciado"></div>
+  <pre class="codigo" id="q-codigo" hidden></pre>
+  <div class="alternativas" id="q-alternativas"></div>
+  <div class="rodape-jogo">
+    <button class="btn fantasma" id="btn-encerrar">Encerrar agora <span class="suave pequeno">(espaço)</span></button>
+    <div class="zoom">
+      <button id="btn-menor" title="Diminuir">A−</button>
+      <button id="btn-maior" title="Aumentar">A+</button>
+      <button id="btn-cheia-2" title="Tela cheia">⛶</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTADO -->
+<section id="tela-resultado" class="tela tela-jogo" hidden>
+  <div class="enunciado longo" id="r-enunciado"></div>
+  <pre class="codigo" id="r-codigo" hidden></pre>
+  <div class="alternativas" id="r-alternativas"></div>
+  <div class="linha" style="align-items:flex-start;gap:26px">
+    <p class="suave crescer" id="r-info"></p>
+    <table class="tabela" id="r-ranking" style="max-width:520px"></table>
+  </div>
+  <div class="rodape-jogo">
+    <button class="btn grande" id="btn-proxima">Próxima</button>
+    <div class="zoom">
+      <button id="btn-menor-2" title="Diminuir">A−</button>
+      <button id="btn-maior-2" title="Aumentar">A+</button>
+    </div>
+  </div>
+</section>
+
+<!-- FIM -->
+<section id="tela-fim" class="tela centralizada" hidden>
+  <h1>🏆 Resultado final</h1>
+  <div class="podio" id="podio"></div>
+  <table class="tabela" id="f-ranking" style="max-width:620px"></table>
+  <div class="linha centro" style="margin-top:16px">
+    <button class="btn" id="btn-ver-relatorio">Ver relatório da turma</button>
+    <button class="btn fantasma" id="btn-nova-sala">Jogar de novo</button>
+    <button class="btn fantasma" id="btn-fim-biblioteca">Meus quizzes</button>
+  </div>
+</section>
+
+<!-- RELATÓRIOS (lista) -->
+<section id="tela-relatorios" class="tela" hidden>
+  <div class="painel">
+    <h1 style="margin-bottom:6px">Relatórios</h1>
+    <p class="suave pequeno" style="margin-bottom:22px">Cada partida encerrada vira um relatório com o desempenho da turma.</p>
+    <div class="coluna" id="lista-relatorios"></div>
+  </div>
+</section>
+
+<!-- RELATÓRIO (detalhe) -->
+<section id="tela-relatorio" class="tela" hidden>
+  <div class="painel">
+    <div class="linha entre" style="margin-bottom:18px">
+      <div>
+        <button class="btn mini" id="btn-voltar-relatorios">← Voltar</button>
+        <h1 id="rel-titulo" style="margin-top:10px"></h1>
+        <p class="suave pequeno" id="rel-data"></p>
+      </div>
+      <button class="btn" id="btn-csv">Baixar planilha (CSV)</button>
+    </div>
+
+    <div class="cartoes-numero" style="margin-bottom:26px" id="rel-numeros"></div>
+
+    <h3 style="margin-bottom:10px">Desempenho por pergunta</h3>
+    <div class="coluna" id="rel-perguntas" style="margin-bottom:30px"></div>
+
+    <h3 style="margin-bottom:10px">Alunos</h3>
+    <div class="cartao rolagem" style="padding:6px 10px">
+      <table class="tabela" id="rel-alunos"></table>
+    </div>
+  </div>
+</section>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="vendor/qrcode.js?v=3"></script>
+<script src="js/ui.js?v=3"></script>
+<script src="js/host.js?v=3"></script>
+</body>
+</html>

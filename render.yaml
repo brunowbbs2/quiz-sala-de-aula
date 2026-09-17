@@ -1,0 +1,18 @@
+# Render: "New +" > "Blueprint" e aponte para este repositório.
+services:
+  - type: web
+    name: quiz-sala-de-aula
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ADMIN_PASSWORD
+        sync: false # defina no painel do Render
+      - key: DATABASE_URL
+        sync: false # libsql://... (Turso) — o plano free não tem disco persistente
+      - key: DATABASE_AUTH_TOKEN
+        sync: false

@@ -92,12 +92,14 @@ async function abrirBiblioteca() {
     acoes.innerHTML = `
       <button class="btn mini" data-acao="duplicar">Duplicar</button>
       <button class="btn mini perigo" data-acao="excluir">Excluir</button>
-      <button class="btn" data-acao="abrir">Abrir</button>`;
+      <button class="btn fantasma" data-acao="editar">✎ Editar</button>
+      <button class="btn" data-acao="jogar">Abrir sala ▸</button>`;
     acoes.addEventListener('click', async (e) => {
       const acao = e.target.dataset.acao;
       if (!acao) return;
       try {
-        if (acao === 'abrir') return abrirEditor(q.id);
+        if (acao === 'editar') return abrirEditor(q.id);
+        if (acao === 'jogar') return jogarQuiz(q.id);
         if (acao === 'duplicar') {
           await api(`/api/quizzes/${q.id}/duplicar`, { method: 'POST' });
           aviso('Quiz duplicado.');
@@ -113,9 +115,22 @@ async function abrirBiblioteca() {
       }
     });
 
+    item.querySelector('.conteudo').addEventListener('click', () => abrirEditor(q.id));
+    item.querySelector('.conteudo').style.cursor = 'pointer';
     item.appendChild(acoes);
     lista.appendChild(item);
   }
+}
+
+/** Abre a sala direto da biblioteca, sem passar pelo editor. */
+async function jogarQuiz(id) {
+  try {
+    quiz = await api(`/api/quizzes/${id}`);
+  } catch (e) {
+    return aviso(e.message, 'erro');
+  }
+  if (!quiz.perguntas.length) return aviso('Este quiz ainda não tem perguntas.', 'erro');
+  abrirSala();
 }
 
 $('btn-novo-quiz').addEventListener('click', async () => {
@@ -211,13 +226,26 @@ function aplicarFonteAlternativas() {
 }
 $('f-alt-codigo').addEventListener('change', aplicarFonteAlternativas);
 
+/* Um tempo fora da lista (vindo de import ou de edição direta) não pode ser
+   trocado em silêncio: se a opção não existir, ela é criada na posição certa. */
+function definirTempo(segundos) {
+  const select = $('f-tempo');
+  const valor = String(segundos);
+  if (!Array.from(select.options).some((o) => o.value === valor)) {
+    const posicao = Array.from(select.options).findIndex((o) => Number(o.value) > segundos);
+    select.add(new Option(`${segundos} segundos`, valor), posicao === -1 ? undefined : posicao);
+  }
+  select.value = valor;
+}
+
 function limparFormulario() {
   editando = null;
+  $$('#lista-perguntas .item').forEach((el) => el.classList.remove('em-edicao'));
   $('f-alt-codigo').checked = false;
   camposAlternativas(4);
   $('f-enunciado').value = '';
   $('f-codigo').value = '';
-  $('f-tempo').value = '20';
+  definirTempo(30);
   $('titulo-form').textContent = 'Nova pergunta';
   $('numero-form').textContent = (quiz ? quiz.perguntas.length : 0) + 1;
   $('btn-salvar-pergunta').textContent = 'Adicionar pergunta';
@@ -269,6 +297,11 @@ function renderPerguntas() {
       salvarQuiz();
     });
 
+    const corpo = item.querySelector('.conteudo');
+    corpo.style.cursor = 'pointer';
+    corpo.title = 'Clique para editar esta pergunta';
+    corpo.addEventListener('click', () => editarPergunta(i));
+
     item.appendChild(acoes);
     lista.appendChild(item);
   });
@@ -283,9 +316,10 @@ function editarPergunta(i) {
   $('f-codigo').value = p.codigo || '';
   camposDeAlternativa().forEach((campo, idx) => (campo.value = p.alternativas[idx] || ''));
   document.querySelector(`input[name=correta][value="${p.correta}"]`).checked = true;
-  $('f-tempo').value = String(p.tempo);
+  definirTempo(p.tempo);
   $('titulo-form').textContent = 'Editando pergunta';
   $('numero-form').textContent = i + 1;
+  $$('#lista-perguntas .item').forEach((el, idx) => el.classList.toggle('em-edicao', idx === i));
   $('btn-salvar-pergunta').textContent = 'Salvar alterações';
   $('btn-cancelar-edicao').hidden = false;
   $('f-enunciado').focus();

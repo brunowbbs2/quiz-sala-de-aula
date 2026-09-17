@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="css/app.css?v=12" />
+<link rel="stylesheet" href="css/app.css?v=13" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
 <style>
   .cabecalho {
@@ -98,10 +98,19 @@
   .alternativa-edit input[type="radio"] { width: 19px; height: 19px; accent-color: var(--sucesso); flex: none; }
   .titulo-quiz {
     font-size: 26px; font-weight: 800; background: transparent;
-    border: 1.5px dashed transparent; padding: 6px 10px;
+    border: 1.5px dashed var(--borda); padding: 6px 10px;
     width: auto; flex: 1; min-width: 300px;
   }
-  .titulo-quiz:hover { border-color: var(--borda); }
+  .titulo-quiz:hover { border-color: var(--acento-forte); background: var(--superficie); }
+  .campo-titulo { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 300px; }
+  .campo-titulo .lapis { color: var(--texto-suave); font-size: 18px; }
+
+  /* pergunta que está aberta no formulário acima */
+  .item.em-edicao {
+    border-color: var(--acento-forte);
+    background: rgba(139, 92, 246, 0.16);
+    box-shadow: 0 0 0 1px var(--acento-forte);
+  }
 
   /* --- relatório --- */
   .cartoes-numero { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
@@ -216,7 +225,10 @@
     <div class="linha entre" style="margin-bottom:16px">
       <div class="linha">
         <button class="btn mini" id="btn-voltar-biblioteca">← Voltar</button>
-        <input class="titulo-quiz" id="titulo-quiz" maxlength="120" placeholder="Nome do quiz" />
+        <span class="campo-titulo">
+          <span class="lapis" title="Clique no nome para renomear">✎</span>
+          <input class="titulo-quiz" id="titulo-quiz" maxlength="120" placeholder="Nome do quiz" />
+        </span>
       </div>
       <div class="linha">
         <span class="etiqueta" id="estado-salvo">salvo</span>
@@ -254,8 +266,11 @@
           <label for="f-tempo">Tempo para responder</label>
           <select id="f-tempo">
             <option value="10">10 segundos</option>
-            <option value="20" selected>20 segundos</option>
-            <option value="30">30 segundos</option>
+            <option value="15">15 segundos</option>
+            <option value="20">20 segundos</option>
+            <option value="30" selected>30 segundos</option>
+            <option value="40">40 segundos</option>
+            <option value="45">45 segundos</option>
             <option value="60">1 minuto</option>
             <option value="90">1min30</option>
             <option value="120">2 minutos</option>
@@ -269,7 +284,10 @@
       <div id="erro-form" class="erro"></div>
     </div>
 
-    <h3 style="margin-bottom:12px">Perguntas (<span id="qtd-perguntas">0</span>)</h3>
+    <div class="linha entre" style="margin-bottom:12px">
+      <h3>Perguntas (<span id="qtd-perguntas">0</span>)</h3>
+      <span class="suave pequeno">Clique numa pergunta para editá-la</span>
+    </div>
     <div class="coluna" id="lista-perguntas"></div>
   </div>
 </section>
@@ -410,8 +428,8 @@
 </section>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="vendor/qrcode.js?v=12"></script>
-<script src="js/ui.js?v=12"></script>
-<script src="js/host.js?v=12"></script>
+<script src="vendor/qrcode.js?v=13"></script>
+<script src="js/ui.js?v=13"></script>
+<script src="js/host.js?v=13"></script>
 </body>
 </html>

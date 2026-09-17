@@ -80,7 +80,9 @@ para o comportamento não mudar junto com a versão do driver.
 ## Usando na aula
 
 1. Entre em `/host` com sua senha.
-2. **Meus quizzes** → crie um quiz e cadastre as perguntas (salva sozinho).
+2. **Meus quizzes** → **✎ Editar** abre o quiz (ou clique no nome dele). Lá dá para
+   renomear, cadastrar, reordenar e editar perguntas — basta clicar numa pergunta da
+   lista. Tudo salva sozinho. **Abrir sala ▸** começa a partida direto da biblioteca.
 3. **Abrir sala** → aparece o PIN gigante e um **QR code**. O aluno aponta a câmera e cai
    na tela de entrada com o PIN já preenchido.
 4. Quando a turma estiver na lista, **Começar**.

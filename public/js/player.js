@@ -80,12 +80,17 @@ function entrouNaSala(res, dados) {
 function retomarSessao() {
   const sessao = lerSessao();
   if (!sessao || !sessao.pin || !sessao.nome) return;
+
+  // Se o link traz outro PIN (QR code de uma sala nova), a sala antiga não
+  // interessa mais — e o PIN dela não pode sobrescrever o que o aluno acabou de abrir.
+  if (pinDaUrl && pinDaUrl.replace(/\D/g, '') !== sessao.pin) return esquecerSessao();
+
   socket.emit('player:entrar', sessao, (res) => {
     if (!res || !res.ok) {
       // sala encerrada ou nome tomado: volta para a tela de entrada
       esquecerSessao();
-      $('pin').value = sessao.pin;
-      $('nome').value = sessao.nome;
+      if (!$('pin').value) $('pin').value = sessao.pin;
+      if (!$('nome').value) $('nome').value = sessao.nome;
       mostrar('tela-entrar');
       if (res && res.erro) $('erro-entrar').textContent = res.erro;
       return;
@@ -172,7 +177,9 @@ function responder(indice) {
       return;
     }
     clearInterval(cronometro);
-    status(forma(indice, true), 'Resposta enviada!', 'Aguardando os outros...');
+    // Nunca mostrar qual alternativa foi escolhida: a tela fica exposta para quem
+    // senta ao lado e ainda não respondeu.
+    status('⏳', 'Resposta enviada!', 'Aguardando os outros...');
   });
 }
 

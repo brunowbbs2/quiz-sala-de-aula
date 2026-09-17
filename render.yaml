@@ -1,4 +1,5 @@
 # Render: "New +" > "Blueprint" e aponte para este repositório.
+# (Dá no mesmo criar um "Web Service" pela interface — o Render detecta Node sozinho.)
 services:
   - type: web
     name: quiz-sala-de-aula
@@ -12,7 +13,9 @@ services:
         value: production
       - key: ADMIN_PASSWORD
         sync: false # defina no painel do Render
-      - key: DATABASE_URL
-        sync: false # libsql://... (Turso) — o plano free não tem disco persistente
-      - key: DATABASE_AUTH_TOKEN
-        sync: false
+      # Sem DATABASE_URL o banco é um arquivo SQLite em ./data.
+      # Atenção: no plano free o disco é apagado a cada deploy e sempre que a
+      # instância acorda depois de dormir. Para os quizzes sobreviverem, crie um
+      # banco no Turso (grátis) e acrescente estas duas variáveis no painel:
+      #   DATABASE_URL         libsql://seu-banco.turso.io
+      #   DATABASE_AUTH_TOKEN  o token do banco

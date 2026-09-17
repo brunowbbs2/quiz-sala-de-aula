@@ -59,10 +59,13 @@ antes de decidir**. Em linhas gerais:
 
 Existe um `Dockerfile` pronto, então qualquer host de container serve.
 
-### Banco de dados (Turso)
+### Banco de dados
 
-Só é necessário se a hospedagem não tiver disco persistente — que é o caso dos planos
-grátis acima. Sem isso, os quizzes e relatórios somem a cada redeploy.
+Sem `DATABASE_URL`, o banco é um arquivo SQLite em `./data` — é o modo mais simples e não
+exige nenhuma conta extra. **Só serve para testes em hospedagem grátis**, porque o disco é
+apagado a cada deploy e toda vez que a instância acorda depois de dormir.
+
+Para os quizzes e relatórios sobreviverem entre as aulas, use o Turso (grátis):
 
 1. Crie um banco no Turso (plano grátis) e copie a URL `libsql://...` e o token.
 2. Defina `DATABASE_URL` e `DATABASE_AUTH_TOKEN` no painel da hospedagem.

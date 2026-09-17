@@ -399,8 +399,23 @@ $('btn-tela-cheia').addEventListener('click', alternarTelaCheia);
 $('btn-cheia-2').addEventListener('click', alternarTelaCheia);
 $('btn-encerrar').addEventListener('click', () => socket.emit('host:encerrarPergunta'));
 $('btn-proxima').addEventListener('click', () => socket.emit('host:proxima'));
-['btn-maior', 'btn-maior-2'].forEach((id) => $(id).addEventListener('click', () => mudarEscala(0.1)));
-['btn-menor', 'btn-menor-2'].forEach((id) => $(id).addEventListener('click', () => mudarEscala(-0.1)));
+function reajustarCodigos() {
+  ajustarCodigo($('q-codigo'));
+  ajustarCodigo($('r-codigo'));
+}
+['btn-maior', 'btn-maior-2'].forEach((id) =>
+  $(id).addEventListener('click', () => {
+    mudarEscala(0.1);
+    reajustarCodigos();
+  })
+);
+['btn-menor', 'btn-menor-2'].forEach((id) =>
+  $(id).addEventListener('click', () => {
+    mudarEscala(-0.1);
+    reajustarCodigos();
+  })
+);
+addEventListener('resize', reajustarCodigos);
 
 socket.on('host:lobby', (jogadores) => {
   $('qtd-jogadores').textContent = jogadores.length;
@@ -463,6 +478,8 @@ socket.on('host:pergunta', ({ indice, total, enunciado, codigo, altCodigo, alter
 
   const caixa = $('q-alternativas');
   caixa.innerHTML = '';
+  caixa.classList.toggle('com-codigo', !!codigo);
+  $('q-corpo').classList.toggle('lado-a-lado', !!codigo);
   alternativas.forEach((texto, i) => caixa.appendChild(caixaAlternativa(texto, i, altCodigo)));
 
   let restante = tempo;
@@ -474,6 +491,7 @@ socket.on('host:pergunta', ({ indice, total, enunciado, codigo, altCodigo, alter
   }, 1000);
 
   mostrar('tela-pergunta');
+  ajustarCodigo($('q-codigo'));
 });
 
 socket.on('host:respostas', ({ responderam, total }) => {
@@ -489,6 +507,8 @@ socket.on('host:resultado', (r) => {
   const maior = Math.max(1, ...r.contagem);
   const caixa = $('r-alternativas');
   caixa.innerHTML = '';
+  caixa.classList.toggle('com-codigo', !!r.codigo);
+  $('r-corpo').classList.toggle('lado-a-lado', !!r.codigo);
   r.alternativas.forEach((texto, i) => {
     const div = caixaAlternativa(texto, i, r.altCodigo);
     div.classList.add(i === r.correta ? 'certa' : 'apagada');
@@ -521,6 +541,7 @@ socket.on('host:resultado', (r) => {
     '</tbody>';
   $('btn-proxima').textContent = r.ultima ? 'Ver resultado final' : 'Próxima pergunta';
   mostrar('tela-resultado');
+  ajustarCodigo($('r-codigo'));
 });
 
 socket.on('host:fim', ({ ranking, partidaId }) => {

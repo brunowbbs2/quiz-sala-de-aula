@@ -176,6 +176,9 @@ option { background: #1b0f45; }
 .alt-3 { background: var(--alt-3); }
 .alt-4 { background: var(--alt-4); }
 .alt-5 { background: var(--alt-5); }
+/* com bloco de código na tela, as alternativas cedem altura para o código */
+.alternativas.com-codigo .alt { min-height: 66px; padding: 12px 18px; }
+
 .alt.apagada { opacity: 0.32; box-shadow: none; }
 .alt.certa { box-shadow: 0 0 0 5px #fff, 0 6px 0 rgba(0, 0, 0, 0.32); animation: pulsar 0.5s ease; }
 .alt.codigo .texto {
@@ -203,10 +206,13 @@ pre.codigo {
   border-radius: 10px;
   padding: 18px 22px;
   overflow: auto;
-  max-height: 46vh;
+  /* Cede espaço ao resto da tela em vez de reservar uma altura fixa: quem
+     encolhe a fonte para caber é ajustarCodigo(), no ui.js. */
+  flex: 0 1 auto;
+  min-height: 0;
   text-align: left;
   font-family: var(--mono);
-  font-size: calc(clamp(17px, 1.6vw, 28px) * var(--escala));
+  font-size: calc(clamp(17px, 1.6vw, 28px) * var(--escala) * var(--ajuste, 1));
   line-height: 1.5;
   color: #e6ecff;
   white-space: pre;
@@ -293,3 +299,16 @@ pre.codigo, code, .mono, .alt.codigo .texto, .item pre.previa {
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0, "calt" 0;
 }
+
+/* link discreto para a área do professor, na tela de entrada do aluno */
+.link-professor {
+  color: var(--texto-suave);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--borda);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.link-professor:hover { color: var(--texto); border-color: var(--acento-forte); background: var(--superficie); }

@@ -23,13 +23,7 @@ function entrar() {
     $('btn-entrar').disabled = false;
     if (!res.ok) return ($('erro-entrar').textContent = res.erro);
 
-    meusPontos = res.pontos || 0;
-    $('lobby-avatar').textContent = res.avatar;
-    $('lobby-nome').textContent = res.nome;
-    $('lobby-quiz').textContent = res.titulo;
-    try {
-      sessionStorage.setItem('quiz.aluno', JSON.stringify({ pin, nome }));
-    } catch (_) {}
+    entrouNaSala(res, { pin, nome });
     mostrar('tela-lobby');
   });
 }
@@ -48,6 +42,62 @@ if (pinDaUrl) {
   $('pin').value = pinDaUrl.replace(/\D/g, '').slice(0, 6);
   setTimeout(() => $('nome').focus(), 120);
 }
+
+/* ---------------- sessão que sobrevive ao F5 ----------------
+   Fica em localStorage (e não sessionStorage) para o aluno voltar mesmo se o
+   celular descartar a aba. O servidor devolve a pontuação acumulada. */
+const CHAVE_SESSAO = 'quiz.aluno';
+
+function guardarSessao(dados) {
+  try {
+    localStorage.setItem(CHAVE_SESSAO, JSON.stringify(dados));
+  } catch (_) {}
+}
+
+function lerSessao() {
+  try {
+    return JSON.parse(localStorage.getItem(CHAVE_SESSAO) || 'null');
+  } catch (_) {
+    return null;
+  }
+}
+
+function esquecerSessao() {
+  try {
+    localStorage.removeItem(CHAVE_SESSAO);
+  } catch (_) {}
+}
+
+function entrouNaSala(res, dados) {
+  meusPontos = res.pontos || 0;
+  $('lobby-avatar').textContent = res.avatar;
+  $('lobby-nome').textContent = res.nome;
+  $('lobby-quiz').textContent = res.titulo;
+  guardarSessao(dados);
+}
+
+/** Tenta voltar para a sala sozinho: vale tanto para F5 quanto para queda de rede. */
+function retomarSessao() {
+  const sessao = lerSessao();
+  if (!sessao || !sessao.pin || !sessao.nome) return;
+  socket.emit('player:entrar', sessao, (res) => {
+    if (!res || !res.ok) {
+      // sala encerrada ou nome tomado: volta para a tela de entrada
+      esquecerSessao();
+      $('pin').value = sessao.pin;
+      $('nome').value = sessao.nome;
+      mostrar('tela-entrar');
+      if (res && res.erro) $('erro-entrar').textContent = res.erro;
+      return;
+    }
+    entrouNaSala(res, sessao);
+    if ($('tela-entrar').hidden === false || telaDeEspera()) {
+      status('🔄', 'Você voltou!', 'Aguarde a próxima pergunta...');
+    }
+  });
+}
+
+const telaDeEspera = () => !$('tela-status').hidden || !$('tela-lobby').hidden;
 
 /* ---------------- status ---------------- */
 function status(icone, titulo, texto, comPlacar) {
@@ -155,26 +205,18 @@ socket.on('player:fim', (r) => {
 });
 
 /* ---------------- avisos do servidor ---------------- */
-socket.on('player:removido', () => status('👋', 'Você saiu da sala', 'O professor removeu você da partida.'));
-socket.on('player:hostSaiu', () => status('🔌', 'Partida encerrada', 'O professor fechou a sala.'));
+socket.on('player:removido', () => {
+  esquecerSessao();
+  status('👋', 'Você saiu da sala', 'O professor removeu você da partida.');
+});
+socket.on('player:hostSaiu', () => {
+  esquecerSessao();
+  status('🔌', 'Partida encerrada', 'O professor fechou a sala.');
+});
 socket.on('disconnect', () => {
   clearInterval(cronometro);
   status('📡', 'Conexão perdida', 'Tentando reconectar...');
 });
-socket.on('connect', () => {
-  // reconexão automática: volta para a sala com o mesmo nome
-  let sessao = null;
-  try {
-    sessao = JSON.parse(sessionStorage.getItem('quiz.aluno') || 'null');
-  } catch (_) {}
-  if (!sessao || !$('tela-entrar').hidden) return;
-  socket.emit('player:entrar', sessao, (res) => {
-    if (res.ok) {
-      meusPontos = res.pontos || 0;
-      status('✅', 'Reconectado', 'Aguarde a próxima pergunta...');
-    } else {
-      mostrar('tela-entrar');
-      $('erro-entrar').textContent = res.erro;
-    }
-  });
-});
+// Vale para o primeiro carregamento (inclusive depois de um F5) e para cada
+// reconexão do socket: se houver sessão guardada, volta sozinho para a sala.
+socket.on('connect', retomarSessao);

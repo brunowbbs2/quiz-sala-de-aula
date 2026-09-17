@@ -58,7 +58,48 @@ const realcar = (codigo) =>
 function pintarCodigo(el, codigo) {
   const tem = !!(codigo && codigo.trim());
   el.hidden = !tem;
-  el.innerHTML = tem ? realcar(codigo.replace(/\t/g, '  ')) : '';
+  if (!tem) {
+    el.innerHTML = '';
+    return;
+  }
+  el.style.setProperty('--ajuste', 1);
+  el.innerHTML = realcar(codigo.replace(/\t/g, '  '));
+}
+
+/*
+ * Encolhe o bloco de código até caber na altura disponível: no telão ninguém
+ * pode rolar a página, então é melhor a fonte diminuir do que o código sumir.
+ *
+ * O fator sai direto da razão entre o que cabe e o que o bloco precisa — sem
+ * laço de tentativa e erro, que custa um refluxo por volta. A segunda medida
+ * corrige o arredondamento das alturas de linha.
+ *
+ * Roda de novo quando as fontes terminam de carregar: com a fonte substituta o
+ * bloco mede diferente e voltaria a estourar depois.
+ */
+const AJUSTE_MINIMO = 0.5;
+
+function ajustarCodigo(el) {
+  if (!el || el.hidden) return;
+
+  const medir = () => {
+    if (el.hidden || !el.clientHeight) return;
+    el.style.setProperty('--ajuste', 1);
+    for (let tentativa = 0; tentativa < 3; tentativa++) {
+      const cabe = el.clientHeight;
+      const precisa = el.scrollHeight;
+      if (precisa <= cabe + 1) return;
+      const atual = Number(el.style.getPropertyValue('--ajuste')) || 1;
+      const fator = Math.max(AJUSTE_MINIMO, atual * (cabe / precisa) * 0.97);
+      el.style.setProperty('--ajuste', fator.toFixed(3));
+      if (fator <= AJUSTE_MINIMO) return;
+    }
+  };
+
+  // Medição síncrona de propósito: requestAnimationFrame não dispara em aba
+  // oculta, e o ajuste precisa estar pronto quando a tela aparecer.
+  medir();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(medir);
 }
 
 /** Enunciado longo (ou acompanhado de código) precisa de fonte menor para caber. */

@@ -4,11 +4,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#0d0722" />
-<title>Quiz — Professor</title>
+<title>Quiz IF — Área do professor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="css/app.css?v=3" />
+<link rel="stylesheet" href="css/app.css?v=10" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
 <style>
   .cabecalho {
@@ -47,7 +47,25 @@
   .jogador button:hover { background: rgba(220, 38, 38, 0.25); }
 
   /* --- jogo --- */
-  .tela-jogo { flex: 1; display: flex; flex-direction: column; gap: 16px; justify-content: center; padding: 20px 26px 26px; }
+  .tela-jogo { flex: 1; display: flex; flex-direction: column; gap: 16px; justify-content: center; padding: 20px 26px 26px; min-height: 0; }
+  /* topo, enunciado, alternativas e rodapé mantêm o tamanho; só o código cede */
+  .tela-jogo > .jogo-topo,
+  .tela-jogo > .enunciado,
+  .tela-jogo > .rodape-jogo,
+  .tela-jogo > .linha { flex: none; }
+
+  /* Corpo da tela: código e alternativas. Num telão 16:9 sobra largura e falta
+     altura, então com código eles ficam lado a lado e o código respira. */
+  .corpo-jogo { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
+  .corpo-jogo > .alternativas { flex: none; }
+  @media (min-width: 1100px) {
+    .corpo-jogo.lado-a-lado { flex-direction: row; align-items: stretch; gap: 20px; }
+    .corpo-jogo.lado-a-lado > pre.codigo { flex: 1.45 1 0; max-height: none; }
+    .corpo-jogo.lado-a-lado > .alternativas {
+      flex: 1 1 0; grid-template-columns: 1fr; grid-auto-rows: 1fr; align-content: stretch;
+    }
+    .corpo-jogo.lado-a-lado .alt { min-height: 0; }
+  }
   .jogo-topo { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
   .jogo-topo .lado { flex: 1; font-weight: 700; font-size: clamp(15px, 1.3vw, 21px); color: var(--texto-suave); }
   .jogo-topo .lado.direita { text-align: right; }
@@ -103,7 +121,7 @@
 <header class="cabecalho" id="cabecalho" hidden>
   <div class="marca">
     <span class="ponto"><svg viewBox="0 0 100 100" fill="#fff"><polygon points="50,10 93,84 7,84"/></svg></span>
-    Quiz
+    Quiz IF
   </div>
   <nav class="abas">
     <button class="aba" id="aba-biblioteca">Meus quizzes</button>
@@ -119,7 +137,7 @@
 <section id="tela-login" class="tela centralizada" hidden>
   <div class="marca" style="font-size:30px">
     <span class="ponto" style="width:40px;height:40px"><svg viewBox="0 0 100 100" fill="#fff"><polygon points="50,10 93,84 7,84"/></svg></span>
-    Quiz
+    Quiz IF
   </div>
   <div class="cartao estreito coluna">
     <h3>Área do professor</h3>
@@ -251,8 +269,10 @@
     <span class="lado direita" id="q-respostas">0 respostas</span>
   </div>
   <div class="enunciado" id="q-enunciado"></div>
-  <pre class="codigo" id="q-codigo" hidden></pre>
-  <div class="alternativas" id="q-alternativas"></div>
+  <div class="corpo-jogo" id="q-corpo">
+    <pre class="codigo" id="q-codigo" hidden></pre>
+    <div class="alternativas" id="q-alternativas"></div>
+  </div>
   <div class="rodape-jogo">
     <button class="btn fantasma" id="btn-encerrar">Encerrar agora <span class="suave pequeno">(espaço)</span></button>
     <div class="zoom">
@@ -266,8 +286,10 @@
 <!-- RESULTADO -->
 <section id="tela-resultado" class="tela tela-jogo" hidden>
   <div class="enunciado longo" id="r-enunciado"></div>
-  <pre class="codigo" id="r-codigo" hidden></pre>
-  <div class="alternativas" id="r-alternativas"></div>
+  <div class="corpo-jogo" id="r-corpo">
+    <pre class="codigo" id="r-codigo" hidden></pre>
+    <div class="alternativas" id="r-alternativas"></div>
+  </div>
   <div class="linha" style="align-items:flex-start;gap:26px">
     <p class="suave crescer" id="r-info"></p>
     <table class="tabela" id="r-ranking" style="max-width:520px"></table>
@@ -327,8 +349,8 @@
 </section>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="vendor/qrcode.js?v=3"></script>
-<script src="js/ui.js?v=3"></script>
-<script src="js/host.js?v=3"></script>
+<script src="vendor/qrcode.js?v=10"></script>
+<script src="js/ui.js?v=10"></script>
+<script src="js/host.js?v=10"></script>
 </body>
 </html>

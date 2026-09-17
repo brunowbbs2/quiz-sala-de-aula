@@ -66,7 +66,7 @@ banco
     server.listen(PORT, '0.0.0.0', () => {
       const aviso = auth.SEM_SENHA ? '  !  Sem senha. Defina ADMIN_PASSWORD antes de publicar.\n' : '';
       console.log(
-        `\n  Quiz no ar  (banco: ${info.url})\n\n` +
+        `\n  Quiz IF no ar  (banco: ${info.url})\n\n` +
           `  Professor:  http://localhost:${PORT}/host\n` +
           `  Alunos:     http://${ipLocal()}:${PORT}\n${aviso}`
       );

@@ -14,8 +14,8 @@ const rota = (fn) => (req, res) =>
   });
 
 async function lerQuiz(id) {
-  const linha = await um('SELECT * FROM quizzes WHERE id = ?', [id]);
-  return linha ? { ...linha, perguntas: JSON.parse(linha.perguntas) } : null;
+  // a coluna é JSONB, então o driver já devolve o array pronto
+  return um('SELECT * FROM quizzes WHERE id = ?', [id]);
 }
 
 function registrar(app) {
@@ -25,7 +25,7 @@ function registrar(app) {
     exigirLogin,
     rota(async (_req, res) => {
       res.json(
-        await todos(`SELECT id, titulo, criado_em, alterado_em, json_array_length(perguntas) AS qtd
+        await todos(`SELECT id, titulo, criado_em, alterado_em, jsonb_array_length(perguntas) AS qtd
                      FROM quizzes ORDER BY alterado_em DESC`)
       );
     })

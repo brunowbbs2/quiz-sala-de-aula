@@ -12,7 +12,8 @@ então não adianta abrir o DevTools.
 
 ```bash
 npm install
-npm start
+cp .env.example .env     # coloque a DATABASE_URL do Neon
+npm run dev
 ```
 
 O terminal mostra os dois endereços:
@@ -37,9 +38,8 @@ estado da partida).
 
 | Variável | Obrigatória | Para que serve |
 | --- | --- | --- |
+| `DATABASE_URL` | **sim** | Postgres do Neon (`postgresql://...`) |
 | `ADMIN_PASSWORD` | sim, em produção | senha da área do professor |
-| `DATABASE_URL` | se o host não tiver disco | banco libSQL/Turso (`libsql://...`) |
-| `DATABASE_AUTH_TOKEN` | com Turso | token do banco |
 | `SESSION_SECRET` | não | mantém o login válido entre reinícios |
 | `PUBLIC_URL` | não | endereço mostrado aos alunos, se a detecção falhar |
 | `PORT` | não | a hospedagem costuma definir sozinha |
@@ -59,18 +59,21 @@ antes de decidir**. Em linhas gerais:
 
 Existe um `Dockerfile` pronto, então qualquer host de container serve.
 
-### Banco de dados
+### Banco de dados (Neon)
 
-Sem `DATABASE_URL`, o banco é um arquivo SQLite em `./data` — é o modo mais simples e não
-exige nenhuma conta extra. **Só serve para testes em hospedagem grátis**, porque o disco é
-apagado a cada deploy e toda vez que a instância acorda depois de dormir.
+O banco é Postgres e a conexão vem de `DATABASE_URL` — obrigatória, inclusive para rodar
+na sua máquina. O plano grátis do [Neon](https://neon.tech) dá conta com folga de uma
+escola inteira.
 
-Para os quizzes e relatórios sobreviverem entre as aulas, use o Turso (grátis):
+1. Crie um projeto no Neon e copie a *Connection string* (use a que tem `-pooler` no host).
+2. Coloque em `DATABASE_URL`, tanto no `.env` local quanto no painel da hospedagem.
 
-1. Crie um banco no Turso (plano grátis) e copie a URL `libsql://...` e o token.
-2. Defina `DATABASE_URL` e `DATABASE_AUTH_TOKEN` no painel da hospedagem.
+As tabelas são criadas sozinhas na primeira execução. A conexão é TLS com verificação de
+certificado — os parâmetros `sslmode`/`channel_binding` da URL são ignorados de propósito,
+para o comportamento não mudar junto com a versão do driver.
 
-As tabelas são criadas sozinhas na primeira execução. O SQL é o mesmo do modo local.
+> O disco das hospedagens grátis é apagado a cada deploy, por isso o banco é externo.
+> Nada é guardado em arquivo.
 
 ---
 
@@ -129,7 +132,7 @@ Toda partida encerrada vira um relatório: acerto médio da turma, desempenho po
 | Arquivo | Papel |
 | --- | --- |
 | `server.js` | Express + Socket.IO, arquivos estáticos, cache e endereço da sala |
-| `src/db.js` | Banco: arquivo local ou Turso, mesmo SQL nos dois |
+| `src/db.js` | Conexão com o Postgres, esquema e transações |
 | `src/auth.js` | Senha do professor, cookie de sessão assinado |
 | `src/api.js` | API de quizzes e relatórios (+ CSV) |
 | `src/game.js` | Motor da partida: estado, tempo, pontuação, gravação |

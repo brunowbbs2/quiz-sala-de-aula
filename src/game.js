@@ -197,7 +197,8 @@ function instalar(io) {
     }
 
     const comandos = [...sala.jogadores.values()].map((j) => ({
-      sql: 'INSERT OR REPLACE INTO participantes (id, partida_id, nome, pontos, acertos) VALUES (?, ?, ?, ?, ?)',
+      sql: `INSERT INTO participantes (id, partida_id, nome, pontos, acertos) VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT (id) DO UPDATE SET pontos = EXCLUDED.pontos, acertos = EXCLUDED.acertos`,
       args: [j.id, sala.partidaId, j.nome, j.pontos, j.acertos],
     }));
     comandos.push({

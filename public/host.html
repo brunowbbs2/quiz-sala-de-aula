@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="css/app.css?v=10" />
+<link rel="stylesheet" href="css/app.css?v=12" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" />
 <style>
   .cabecalho {
@@ -113,6 +113,48 @@
   .marca-resposta.erro { background: rgba(220, 38, 38, 0.3); color: #fca5a5; }
   .marca-resposta.branco { background: var(--superficie-2); color: var(--texto-suave); }
   .rolagem { overflow-x: auto; }
+
+  /* --- visualização do questionário --- */
+  .questao { display: flex; flex-direction: column; gap: 12px; }
+  .questao .enunciado-previa { font-size: 20px; font-weight: 700; line-height: 1.3; }
+  .questao pre.codigo { font-size: 15px; max-height: none; }
+  .alternativas.previa { gap: 10px; }
+  .alternativas.previa .alt {
+    min-height: 0; padding: 11px 14px; font-size: 16px; font-weight: 600;
+    box-shadow: none; gap: 10px;
+  }
+  .alternativas.previa .alt .forma { font-size: 1em; }
+  .marca-certa { font-size: 13px; font-weight: 800; letter-spacing: 0.04em; }
+  .sem-gabarito .alt.certa { box-shadow: none; }
+  .sem-gabarito .marca-certa { display: none; }
+
+  /* --- impressão: fundo claro, sem gastar tinta com os blocos coloridos --- */
+  @media print {
+    @page { margin: 14mm; }
+    body { background: #fff !important; color: #111; display: block; }
+    .cabecalho, #v-cabecalho, .aviso, #confete { display: none !important; }
+    .painel { max-width: 100%; padding: 0; }
+    .questao {
+      break-inside: avoid; page-break-inside: avoid;
+      border: 1px solid #ccc; border-radius: 8px; padding: 14px; margin-bottom: 12px;
+      background: #fff; box-shadow: none; backdrop-filter: none;
+    }
+    .questao h3, .questao .enunciado-previa, .questao .suave { color: #111 !important; }
+    .etiqueta { color: #444; border-color: #bbb; background: #fff; }
+    pre.codigo { background: #f5f5f8; color: #111; border-color: #ccc; border-left-color: #666; }
+    pre.codigo .kw { color: #0b3d91; }
+    pre.codigo .str { color: #15600f; }
+    pre.codigo .num { color: #8a4b00; }
+    pre.codigo .cmt { color: #666; }
+    .alt {
+      background: #fff !important; color: #111 !important; border: 1.5px solid #999;
+      box-shadow: none; text-shadow: none;
+    }
+    .alt.certa { border: 2.5px solid #15600f; }
+    .alt .forma { color: #333 !important; }
+    .marca-certa { color: #15600f !important; }
+    .enunciado code, .alt code, code.inline { background: #ececf2; color: #111; }
+  }
 </style>
 </head>
 <body>
@@ -178,6 +220,7 @@
       </div>
       <div class="linha">
         <span class="etiqueta" id="estado-salvo">salvo</span>
+        <button class="btn fantasma" id="btn-visualizar">Visualizar</button>
         <button class="btn fantasma" id="btn-exportar">Exportar</button>
         <button class="btn" id="btn-abrir-sala">Abrir sala ▸</button>
       </div>
@@ -315,6 +358,24 @@
   </div>
 </section>
 
+<!-- VISUALIZAÇÃO DO QUESTIONÁRIO -->
+<section id="tela-visualizar" class="tela" hidden>
+  <div class="painel">
+    <div class="linha entre" style="margin-bottom:20px" id="v-cabecalho">
+      <div>
+        <button class="btn mini" id="btn-voltar-editor-2">← Voltar ao editor</button>
+        <h1 id="v-titulo" style="margin-top:10px"></h1>
+        <p class="suave pequeno" id="v-resumo"></p>
+      </div>
+      <div class="linha">
+        <label class="checkbox"><input type="checkbox" id="v-gabarito" checked /> mostrar gabarito</label>
+        <button class="btn" id="btn-imprimir">Imprimir / PDF</button>
+      </div>
+    </div>
+    <div class="coluna" id="v-perguntas" style="gap:18px"></div>
+  </div>
+</section>
+
 <!-- RELATÓRIOS (lista) -->
 <section id="tela-relatorios" class="tela" hidden>
   <div class="painel">
@@ -349,8 +410,8 @@
 </section>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="vendor/qrcode.js?v=10"></script>
-<script src="js/ui.js?v=10"></script>
-<script src="js/host.js?v=10"></script>
+<script src="vendor/qrcode.js?v=12"></script>
+<script src="js/ui.js?v=12"></script>
+<script src="js/host.js?v=12"></script>
 </body>
 </html>

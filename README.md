@@ -88,6 +88,16 @@ para o comportamento não mudar junto com a versão do driver.
 6. Depois de cada pergunta: gabarito, quantos marcaram cada alternativa e o ranking.
 7. No fim: pódio e **relatório da turma**.
 
+### Conferir o questionário antes da aula
+
+No editor, **Visualizar** mostra a prova inteira numa página só: enunciado, código
+formatado e as alternativas, com a correta marcada. Serve para revisar antes de projetar.
+
+- O interruptor **mostrar gabarito** esconde as respostas — útil para projetar a revisão
+  ou entregar em papel para os alunos responderem.
+- **Imprimir / PDF** usa um layout claro (fundo branco, alternativas sem preenchimento
+  colorido) e evita quebrar uma questão no meio de duas páginas.
+
 ### Atalhos durante a partida
 
 | Tecla | Ação |

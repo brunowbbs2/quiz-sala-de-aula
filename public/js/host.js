@@ -2,10 +2,13 @@
 
 const socket = io();
 const TELAS = [
-  'tela-login', 'tela-biblioteca', 'tela-editor', 'tela-lobby', 'tela-contagem',
-  'tela-pergunta', 'tela-resultado', 'tela-fim', 'tela-relatorios', 'tela-relatorio',
+  'tela-login', 'tela-biblioteca', 'tela-editor', 'tela-visualizar', 'tela-lobby',
+  'tela-contagem', 'tela-pergunta', 'tela-resultado', 'tela-fim', 'tela-relatorios',
+  'tela-relatorio',
 ];
-const TELAS_GESTAO = ['tela-biblioteca', 'tela-editor', 'tela-relatorios', 'tela-relatorio'];
+const TELAS_GESTAO = [
+  'tela-biblioteca', 'tela-editor', 'tela-visualizar', 'tela-relatorios', 'tela-relatorio',
+];
 const navegar = criarNavegador(TELAS);
 const atualizarRelogio = montarRelogio($('q-relogio'));
 
@@ -20,7 +23,10 @@ function mostrar(id) {
   telaAtual = id;
   navegar(id);
   $('cabecalho').hidden = !TELAS_GESTAO.includes(id);
-  $('aba-biblioteca').classList.toggle('ativa', id === 'tela-biblioteca' || id === 'tela-editor');
+  $('aba-biblioteca').classList.toggle(
+    'ativa',
+    ['tela-biblioteca', 'tela-editor', 'tela-visualizar'].includes(id)
+  );
   $('aba-relatorios').classList.toggle('ativa', id === 'tela-relatorios' || id === 'tela-relatorio');
 }
 
@@ -349,6 +355,67 @@ $('btn-exportar').addEventListener('click', () => {
   link.click();
   URL.revokeObjectURL(link.href);
 });
+
+/* ================= VISUALIZAÇÃO ================= */
+/* A prova inteira numa página: para conferir antes da aula ou imprimir em papel. */
+function abrirVisualizacao() {
+  if (!quiz.perguntas.length) return aviso('Cadastre ao menos uma pergunta.', 'erro');
+
+  const segundos = quiz.perguntas.reduce((soma, p) => soma + p.tempo, 0);
+  $('v-titulo').textContent = quiz.titulo;
+  $('v-resumo').textContent =
+    `${quiz.perguntas.length} pergunta(s) · ${Math.round(segundos / 60)} min de perguntas ` +
+    `· ${segundos}s no total`;
+
+  const caixa = $('v-perguntas');
+  caixa.innerHTML = '';
+
+  quiz.perguntas.forEach((p, i) => {
+    const cartao = document.createElement('div');
+    cartao.className = 'cartao questao';
+
+    const topo = document.createElement('div');
+    topo.className = 'linha entre';
+    topo.innerHTML = `<h3>Pergunta ${i + 1}</h3><span class="etiqueta">${p.tempo}s</span>`;
+    cartao.appendChild(topo);
+
+    const enunciado = document.createElement('div');
+    enunciado.className = 'enunciado-previa';
+    enunciado.innerHTML = comInline(p.enunciado);
+    cartao.appendChild(enunciado);
+
+    if (p.codigo) {
+      const bloco = document.createElement('pre');
+      bloco.className = 'codigo';
+      pintarCodigo(bloco, p.codigo);
+      cartao.appendChild(bloco);
+    }
+
+    const alternativas = document.createElement('div');
+    alternativas.className = 'alternativas previa';
+    p.alternativas.forEach((texto, j) => {
+      const item = caixaAlternativa(texto, j, p.altCodigo);
+      if (j === p.correta) {
+        item.classList.add('certa');
+        item.insertAdjacentHTML('beforeend', '<span class="marca-certa">✔ correta</span>');
+      }
+      alternativas.appendChild(item);
+    });
+    cartao.appendChild(alternativas);
+
+    caixa.appendChild(cartao);
+  });
+
+  caixa.classList.toggle('sem-gabarito', !$('v-gabarito').checked);
+  mostrar('tela-visualizar');
+}
+
+$('btn-visualizar').addEventListener('click', abrirVisualizacao);
+$('btn-voltar-editor-2').addEventListener('click', () => mostrar('tela-editor'));
+$('btn-imprimir').addEventListener('click', () => window.print());
+$('v-gabarito').addEventListener('change', (e) =>
+  $('v-perguntas').classList.toggle('sem-gabarito', !e.target.checked)
+);
 
 /* ================= SALA ================= */
 $('btn-abrir-sala').addEventListener('click', async () => {

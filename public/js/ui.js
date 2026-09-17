@@ -35,6 +35,9 @@ const PALAVRAS = [
   'true','false','null','nil','undefined','None','True','False','async','await','try','catch','except','finally',
   'throw','raise','with','yield','print','println','echo','end','then','struct','interface','enum','type','package',
   'using','namespace','select','insert','update','delete','where','join','group','order','begin','foreach','in','of',
+  // embutidas do Python que aparecem muito em exercício de sala
+  'input','len','range','sum','min','max','abs','round','sorted','enumerate','zip','open','not','and','or','is',
+  'append','pass','global','del','assert',
 ].join('|');
 
 const TOKENS = new RegExp(

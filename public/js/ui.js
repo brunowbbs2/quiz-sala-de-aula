@@ -40,12 +40,14 @@ const PALAVRAS = [
   'append','pass','global','del','assert',
 ].join('|');
 
+// `//` só é comentário no começo da linha ou depois de ; { } — no meio de uma
+// expressão (`minutos // 60`) é a divisão inteira do Python.
 const TOKENS = new RegExp(
-  '(\\/\\/[^\\n]*|#[^\\n]*|--[^\\n]*|\\/\\*[\\s\\S]*?\\*\\/)' +
+  '((?:^|(?<=[;{}]))[ \\t]*\\/\\/[^\\n]*|#[^\\n]*|--[^\\n]*|\\/\\*[\\s\\S]*?\\*\\/)' +
     "|('(?:\\\\.|[^'\\\\\\n])*'|\"(?:\\\\.|[^\"\\\\\\n])*\"|`(?:\\\\.|[^`\\\\])*`)" +
     '|\\b(\\d+(?:\\.\\d+)?)\\b' +
     '|\\b(' + PALAVRAS + ')\\b',
-  'g'
+  'gm'
 );
 
 /** Destaque de sintaxe simples, propositalmente independente de linguagem. */
